@@ -4,6 +4,9 @@ from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+
 
 # Create your views here.
 
@@ -34,4 +37,22 @@ class UserListCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 def signin_list(request):
-    return render(request, 'signin.html')
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password1']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('homepage')
+        else:
+            # Handle authentication failure
+            messages.warning(request, 'Invalid username or password')
+            return redirect('signin_list')
+    return render(request,'signin.html')
+        
+def logout_view(request):
+    logout(request)
+    return redirect('signin_list')
+
+def homepage(request):
+    return render(request, 'index.html')
